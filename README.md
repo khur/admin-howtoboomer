@@ -71,3 +71,7 @@ the service-role key.
 - Env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
 - `public/_redirects` already routes every path to `index.html` (SPA).
 - `index.html` carries `noindex, nofollow`.
+
+
+
+Date Trigger: 09/10/2026
