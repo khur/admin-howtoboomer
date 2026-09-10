@@ -35,6 +35,9 @@ describe("featureLabel", () => {
   it("passes unknown keys through", () => {
     expect(featureLabel("something_new")).toBe("something_new");
   });
+  it("names the backfill placeholder", () => {
+    expect(featureLabel("unknown")).toBe("Unknown (pre-tracking)");
+  });
 });
 
 describe("preview", () => {

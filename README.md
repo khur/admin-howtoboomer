@@ -56,6 +56,11 @@ Supabase MCP; the files are the record.
 - **Saved results** (`public.user_activity_history`) — only what signed-in users chose to
   save with the Save button. Includes the text. Older and much smaller.
 
+Rows with `source = 'backfill'` (Jun 13 – Sep 10 2026) were reconstructed from Supabase
+edge-function logs before live logging existed: real timestamps (to the hour), platform,
+user id, status and latency, but `feature = 'unknown'`, no page, and a differently-salted
+visitor hash. Logs before Jun 23 carried no IP or user id, so those rows have neither.
+
 Anonymous visitors are counted by `visitor_hash` = first 24 hex chars of
 SHA-256(salt + ip). The salt is `TOOL_RUNS_SALT` if set as a function secret, otherwise
 the service-role key.

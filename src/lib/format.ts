@@ -55,6 +55,7 @@ const LABELS: Record<FeatureType, string> = {
 };
 
 export function featureLabel(featureType: string): string {
+  if (featureType === "unknown") return "Unknown (pre-tracking)";
   return LABELS[featureType as FeatureType] ?? featureType;
 }
 
