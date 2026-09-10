@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Editorial tokens, copied from apps/web/src/styles/global.css (the source of
+   truth). Flat surfaces, square corners, and a load-bearing 1px edge:
+   `--border-strong` is the ONLY boundary of cards/inputs/buttons and must
+   clear 3:1 (WCAG 1.4.11). `--hairline` is decorative only.
+   --------------------------------------------------------------------------- */
+:root {
+  --rausch: #9c2a1b;
+  --rausch-active: #7e1f12;
+  --rausch-disabled: #e1b5ac;
+  --teal: #3f6f62;
+  --teal-active: #2f574b;
+  --marigold: #f2a900;
+
+  --ink: #332f2b;
+  --body: #4a453f;
+  --ink-muted: #6a635b;
+  --on-primary: #fbf5ec;
+
+  --canvas: #f4f1ea;
+  --surface-soft: #ede8dd;
+  --surface-strong: #fbf9f4;
+
+  --hairline: #ddd6c9;
+  --border-strong: #8c8478;
+
+  --error-text: #9c2a1b;
+  --success-fill: #cfe0da;
+  --error-fill: #e8c9c1;
+
+  --font-body: "Nunito", -apple-system, system-ui, Roboto, "Helvetica Neue", sans-serif;
+  --font-display: "DM Sans", -apple-system, system-ui, "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Chart series: web = teal, ios = brick, unknown = muted ink. */
+  --chart-web: var(--teal);
+  --chart-ios: var(--rausch);
+  --chart-android: var(--marigold);
+  --chart-unknown: #a49c91;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface-strong);
+  --color-surface-soft: var(--surface-soft);
+  --color-ink: var(--ink);
+  --color-body: var(--body);
+  --color-muted: var(--ink-muted);
+  --color-edge: var(--border-strong);
+  --color-hairline: var(--hairline);
+  --color-brick: var(--rausch);
+  --color-brick-active: var(--rausch-active);
+  --color-brick-disabled: var(--rausch-disabled);
+  --color-on-brick: var(--on-primary);
+  --color-teal: var(--teal);
+  --color-marigold: var(--marigold);
+  --color-error: var(--error-text);
+  --color-success-fill: var(--success-fill);
+  --color-error-fill: var(--error-fill);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+  --radius: 0px;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+  body {
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  :focus-visible {
+    outline: 2px solid var(--rausch);
+    outline-offset: 2px;
+  }
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-surface border border-edge;
+  }
+  .field {
+    @apply w-full h-12 px-3 bg-surface border border-edge text-ink placeholder:text-muted;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 h-12 px-5 rounded-full font-display font-semibold border border-edge bg-surface text-ink transition-colors duration-150 hover:bg-surface-soft disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply bg-brick text-on-brick border-brick hover:bg-brick-active;
+  }
+  .btn-danger {
+    @apply text-error border-error hover:bg-error-fill;
+  }
+  .btn-sm {
+    @apply h-10 px-4 text-sm;
+  }
+  .label {
+    @apply block text-sm font-semibold text-body mb-1.5;
+  }
+  .badge {
+    @apply inline-block px-2 py-0.5 text-xs font-semibold border border-edge bg-surface-soft text-body uppercase tracking-wide;
+  }
+}
