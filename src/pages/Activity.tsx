@@ -1,6 +1,7 @@
 import { useSearchParams } from "react-router";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { ACTIVITY_PAGE_SIZE, listActivity } from "@/lib/api";
+import { ACTIVITY_PAGE_SIZE, DEFAULT_SORT, listActivity } from "@/lib/api";
+import { nextSort, parseSort, sortParam } from "@/lib/sort";
 import { FEATURE_TYPES, PLATFORMS } from "@/lib/types";
 import { featureLabel, formatNumber, platformLabel } from "@/lib/format";
 import { PageHeader } from "@/components/PageHeader";
@@ -9,19 +10,22 @@ import { Pagination } from "@/components/Pagination";
 import { ErrorBlock } from "@/components/ErrorBlock";
 import { Spinner } from "@/components/Spinner";
 
+const SORT_KEYS = ["created_at", "email", "feature_type", "platform"];
+
 export function Activity() {
   const [params, setParams] = useSearchParams();
   const feature = params.get("tool") ?? "";
   const platform = params.get("platform") ?? "";
   const sinceDay = params.get("since") ?? "";
   const page = Math.max(1, Number(params.get("page") ?? 1));
+  const sort = parseSort(params.get("sort"), SORT_KEYS, DEFAULT_SORT);
 
   // A date input gives "YYYY-MM-DD"; send local midnight of that day.
   const since = sinceDay ? new Date(`${sinceDay}T00:00:00`).toISOString() : undefined;
 
   const q = useQuery({
-    queryKey: ["activity", feature, platform, since, page],
-    queryFn: () => listActivity({ feature, platform, since, page }),
+    queryKey: ["activity", feature, platform, since, page, sort],
+    queryFn: () => listActivity({ feature, platform, since, page, sort }),
     placeholderData: keepPreviousData,
   });
 
@@ -78,7 +82,13 @@ export function Activity() {
       {q.isError && <ErrorBlock error={q.error} onRetry={() => void q.refetch()} />}
       {q.data && (
         <div className={q.isPlaceholderData ? "opacity-60" : ""}>
-          <ActivityList rows={q.data.rows} showUser emptyText="No tool runs match these filters." />
+          <ActivityList
+            rows={q.data.rows}
+            showUser
+            sort={sort}
+            onSort={(key, dir) => update({ sort: sortParam(nextSort(sort, key, dir)) })}
+            emptyText="No tool runs match these filters."
+          />
           <Pagination
             page={page}
             total={q.data.total}

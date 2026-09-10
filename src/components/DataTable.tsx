@@ -1,10 +1,16 @@
 import type { ReactNode } from "react";
+import type { Sort, SortDir } from "@/lib/types";
+import { SortHeader } from "./SortHeader";
 
 export interface Column<T> {
   key: string;
   header: string;
   render: (row: T) => ReactNode;
   className?: string;
+  /** Present → the header sorts by this key. */
+  sortKey?: string;
+  /** Direction used the first time the column is clicked. */
+  defaultDir?: SortDir;
 }
 
 export function DataTable<T>({
@@ -13,12 +19,16 @@ export function DataTable<T>({
   rowKey,
   onRowClick,
   emptyText = "Nothing here yet.",
+  sort,
+  onSort,
 }: {
   columns: Column<T>[];
   rows: T[];
   rowKey: (row: T) => string;
   onRowClick?: (row: T) => void;
   emptyText?: string;
+  sort?: Sort;
+  onSort?: (key: string, defaultDir: SortDir) => void;
 }) {
   return (
     <div className="card overflow-x-auto">
@@ -26,9 +36,15 @@ export function DataTable<T>({
         <thead>
           <tr className="border-b border-edge bg-surface-soft text-left">
             {columns.map((c) => (
-              <th key={c.key} scope="col" className={`px-4 py-3 font-semibold ${c.className ?? ""}`}>
-                {c.header}
-              </th>
+              <SortHeader
+                key={c.key}
+                label={c.header}
+                sortKey={c.sortKey}
+                defaultDir={c.defaultDir}
+                sort={sort}
+                onSort={onSort}
+                className={c.className}
+              />
             ))}
           </tr>
         </thead>

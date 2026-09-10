@@ -66,15 +66,19 @@ describe("listUsers", () => {
       error: null,
     });
     const page = await listUsers("bob", 2);
-    expect(rpc).toHaveBeenCalledWith("admin_users", { search: "bob", lim: 50, off: 50 });
+    expect(rpc).toHaveBeenCalledWith("admin_users", {
+      search: "bob", lim: 50, off: 50, sort_by: "created_at", sort_dir: "desc",
+    });
     expect(page.total).toBe(120);
     expect(page.rows.map((r) => r.user_id)).toEqual(["a", "b"]);
     expect("total_count" in page.rows[0]).toBe(false);
   });
   it("sends null for a blank search and total 0 when empty", async () => {
     rpc.mockResolvedValueOnce({ data: [], error: null });
-    const page = await listUsers("  ", 1);
-    expect(rpc).toHaveBeenCalledWith("admin_users", { search: null, lim: 50, off: 0 });
+    const page = await listUsers("  ", 1, { by: "run_count", dir: "asc" });
+    expect(rpc).toHaveBeenCalledWith("admin_users", {
+      search: null, lim: 50, off: 0, sort_by: "run_count", sort_dir: "asc",
+    });
     expect(page).toEqual({ rows: [], total: 0 });
   });
 });
@@ -92,13 +96,15 @@ describe("getUserDetail", () => {
 describe("listActivity", () => {
   it("maps filters to rpc params with nulls for 'all'", async () => {
     rpc.mockResolvedValueOnce({ data: [{ id: "1", total_count: 7 }], error: null });
-    const page = await listActivity({ feature: "translator", page: 3, pageSize: 20 });
+    const page = await listActivity({ feature: "translator", page: 3, pageSize: 20, sort: { by: "email", dir: "asc" } });
     expect(rpc).toHaveBeenCalledWith("admin_activity", {
       p_feature: "translator",
       p_platform: null,
       p_since: null,
       lim: 20,
       off: 40,
+      sort_by: "email",
+      sort_dir: "asc",
     });
     expect(page.total).toBe(7);
   });

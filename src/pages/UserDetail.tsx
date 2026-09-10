@@ -11,6 +11,9 @@ import { Spinner } from "@/components/Spinner";
 import { ErrorBlock } from "@/components/ErrorBlock";
 import { ActivityList } from "@/components/ActivityList";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { DEFAULT_SORT } from "@/lib/api";
+import { nextSort, sortRows } from "@/lib/sort";
+import type { Sort } from "@/lib/types";
 
 export function UserDetail() {
   const { id = "" } = useParams();
@@ -24,6 +27,7 @@ export function UserDetail() {
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [activitySort, setActivitySort] = useState<Sort>(DEFAULT_SORT);
 
   useEffect(() => {
     if (q.data) {
@@ -138,7 +142,12 @@ export function UserDetail() {
       </div>
 
       <h2 className="text-lg mb-3">Activity {activity.length >= 500 && <span className="text-sm text-muted">(latest 500)</span>}</h2>
-      <ActivityList rows={activity} emptyText="This user hasn't run a tool yet." />
+      <ActivityList
+        rows={sortRows(activity, activitySort)}
+        sort={activitySort}
+        onSort={(key, dir) => setActivitySort((s) => nextSort(s, key, dir))}
+        emptyText="This user hasn't run a tool yet."
+      />
 
       <ConfirmDialog
         open={confirmOpen}

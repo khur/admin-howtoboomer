@@ -1,7 +1,8 @@
 import { Fragment, useState } from "react";
 import { Link } from "react-router";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import type { ActivityRow } from "@/lib/types";
+import type { ActivityRow, Sort, SortDir } from "@/lib/types";
+import { SortHeader } from "./SortHeader";
 import { featureLabel, formatDateTime, preview } from "@/lib/format";
 import { PlatformBadge } from "./PlatformBadge";
 
@@ -13,10 +14,14 @@ export function ActivityList({
   rows,
   showUser = false,
   emptyText = "No activity yet.",
+  sort,
+  onSort,
 }: {
   rows: ActivityRow[];
   showUser?: boolean;
   emptyText?: string;
+  sort?: Sort;
+  onSort?: (key: string, defaultDir: SortDir) => void;
 }) {
   const [open, setOpen] = useState<Set<string>>(new Set());
   const cols = showUser ? 5 : 4;
@@ -35,11 +40,11 @@ export function ActivityList({
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-edge bg-surface-soft text-left">
-            <th scope="col" className="px-4 py-3 font-semibold w-44">When</th>
-            {showUser && <th scope="col" className="px-4 py-3 font-semibold">User</th>}
-            <th scope="col" className="px-4 py-3 font-semibold">Tool</th>
-            <th scope="col" className="px-4 py-3 font-semibold">Platform</th>
-            <th scope="col" className="px-4 py-3 font-semibold">Input</th>
+            <SortHeader label="When" sortKey="created_at" defaultDir="desc" sort={sort} onSort={onSort} className="w-44" />
+            {showUser && <SortHeader label="User" sortKey="email" sort={sort} onSort={onSort} />}
+            <SortHeader label="Tool" sortKey="feature_type" sort={sort} onSort={onSort} />
+            <SortHeader label="Platform" sortKey="platform" sort={sort} onSort={onSort} />
+            <SortHeader label="Input" />
           </tr>
         </thead>
         <tbody>

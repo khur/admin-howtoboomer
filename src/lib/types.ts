@@ -63,3 +63,9 @@ export interface Page<T> {
   rows: T[];
   total: number;
 }
+
+export type SortDir = "asc" | "desc";
+export interface Sort {
+  by: string;
+  dir: SortDir;
+}

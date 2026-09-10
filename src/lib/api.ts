@@ -3,10 +3,11 @@
 // pages can hand it straight to an ErrorBlock or toast.
 
 import { supabase } from "./supabase";
-import type { ActivityRow, AdminUser, Page, Stats } from "./types";
+import type { ActivityRow, AdminUser, Page, Sort, Stats } from "./types";
 
 export const USERS_PAGE_SIZE = 50;
 export const ACTIVITY_PAGE_SIZE = 100;
+export const DEFAULT_SORT: Sort = { by: "created_at", dir: "desc" };
 
 function fail(error: { message: string } | null, fallback: string): never {
   throw new Error(error?.message || fallback);
@@ -39,6 +40,7 @@ export async function getStats(): Promise<Stats> {
 export async function listUsers(
   search: string,
   page: number,
+  sort: Sort = DEFAULT_SORT,
   pageSize = USERS_PAGE_SIZE,
 ): Promise<Page<AdminUser>> {
   const trimmed = search.trim();
@@ -46,6 +48,8 @@ export async function listUsers(
     search: trimmed ? trimmed : null,
     lim: pageSize,
     off: (page - 1) * pageSize,
+    sort_by: sort.by,
+    sort_dir: sort.dir,
   });
   if (error) fail(error, "Could not load users.");
   return toPage<AdminUser & { total_count: number }>(data);
@@ -68,16 +72,20 @@ export interface ActivityFilters {
   since?: string;
   page: number;
   pageSize?: number;
+  sort?: Sort;
 }
 
 export async function listActivity(f: ActivityFilters): Promise<Page<ActivityRow>> {
   const pageSize = f.pageSize ?? ACTIVITY_PAGE_SIZE;
+  const sort = f.sort ?? DEFAULT_SORT;
   const { data, error } = await supabase.rpc("admin_activity", {
     p_feature: f.feature || null,
     p_platform: f.platform || null,
     p_since: f.since || null,
     lim: pageSize,
     off: (f.page - 1) * pageSize,
+    sort_by: sort.by,
+    sort_dir: sort.dir,
   });
   if (error) fail(error, "Could not load activity.");
   return toPage<ActivityRow & { total_count: number }>(data);
