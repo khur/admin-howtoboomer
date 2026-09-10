@@ -12,6 +12,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { Users } from "./pages/Users";
 import { UserDetail } from "./pages/UserDetail";
 import { Activity } from "./pages/Activity";
+import { Runs } from "./pages/Runs";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
@@ -35,6 +36,7 @@ createRoot(document.getElementById("root")!).render(
                 <Route index element={<Dashboard />} />
                 <Route path="users" element={<Users />} />
                 <Route path="users/:id" element={<UserDetail />} />
+                <Route path="runs" element={<Runs />} />
                 <Route path="activity" element={<Activity />} />
               </Route>
             </Routes>

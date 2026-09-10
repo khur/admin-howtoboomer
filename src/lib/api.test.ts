@@ -28,6 +28,7 @@ import {
   listUsers,
   getUserDetail,
   listActivity,
+  listToolRuns,
   updateProfile,
   sendPasswordReset,
   deleteUser,
@@ -107,6 +108,28 @@ describe("listActivity", () => {
       sort_dir: "asc",
     });
     expect(page.total).toBe(7);
+  });
+});
+
+describe("listToolRuns", () => {
+  it("maps the who filter to p_anon and passes status", async () => {
+    rpc.mockResolvedValueOnce({ data: [{ id: "r1", total_count: 3 }], error: null });
+    const page = await listToolRuns({ who: "anon", status: "error", page: 1 });
+    expect(rpc).toHaveBeenCalledWith("admin_tool_runs", {
+      p_feature: null,
+      p_platform: null,
+      p_since: null,
+      p_status: "error",
+      p_anon: true,
+      lim: 100,
+      off: 0,
+      sort_by: "created_at",
+      sort_dir: "desc",
+    });
+    expect(page.total).toBe(3);
+    rpc.mockResolvedValueOnce({ data: [], error: null });
+    await listToolRuns({ who: "signed_in", page: 1 });
+    expect(rpc).toHaveBeenLastCalledWith("admin_tool_runs", expect.objectContaining({ p_anon: false, p_status: null }));
   });
 });
 

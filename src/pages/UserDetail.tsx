@@ -10,6 +10,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Spinner } from "@/components/Spinner";
 import { ErrorBlock } from "@/components/ErrorBlock";
 import { ActivityList } from "@/components/ActivityList";
+import { RunsList } from "@/components/RunsList";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { DEFAULT_SORT } from "@/lib/api";
 import { nextSort, sortRows } from "@/lib/sort";
@@ -28,6 +29,7 @@ export function UserDetail() {
   const [username, setUsername] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [activitySort, setActivitySort] = useState<Sort>(DEFAULT_SORT);
+  const [runsSort, setRunsSort] = useState<Sort>(DEFAULT_SORT);
 
   useEffect(() => {
     if (q.data) {
@@ -68,7 +70,7 @@ export function UserDetail() {
   if (q.isPending) return <Spinner label="Loading user…" />;
   if (q.isError) return <ErrorBlock error={q.error} onRetry={() => void q.refetch()} />;
 
-  const { user, activity } = q.data;
+  const { user, activity, runs } = q.data;
   const isSelf = session?.user.id === user.user_id;
   const dirty = fullName.trim() !== (user.full_name ?? "") || username.trim() !== (user.username ?? "");
 
@@ -93,7 +95,8 @@ export function UserDetail() {
           <>
             Joined {formatDate(user.created_at)} · last sign-in {formatRelative(user.last_sign_in_at)}
             {user.last_sign_in_at && ` (${formatDateTime(user.last_sign_in_at)})`} ·{" "}
-            {formatNumber(user.run_count)} tool runs
+            {formatNumber(user.tool_runs)} runs (last {formatRelative(user.last_run_at)}) ·{" "}
+            {formatNumber(user.run_count)} saved
           </>
         }
       />
@@ -141,12 +144,23 @@ export function UserDetail() {
         </section>
       </div>
 
-      <h2 className="text-lg mb-3">Activity {activity.length >= 500 && <span className="text-sm text-muted">(latest 500)</span>}</h2>
+      <h2 className="text-lg mb-3">Runs {runs.length >= 200 && <span className="text-sm text-muted">(latest 200)</span>}</h2>
+      <p className="text-sm text-muted mb-3">Every AI call this user made while signed in.</p>
+      <div className="mb-8">
+        <RunsList
+          rows={sortRows(runs, runsSort)}
+          sort={runsSort}
+          onSort={(key, dir) => setRunsSort((s) => nextSort(s, key, dir))}
+          emptyText="No runs recorded yet."
+        />
+      </div>
+
+      <h2 className="text-lg mb-3">Saved results {activity.length >= 500 && <span className="text-sm text-muted">(latest 500)</span>}</h2>
       <ActivityList
         rows={sortRows(activity, activitySort)}
         sort={activitySort}
         onSort={(key, dir) => setActivitySort((s) => nextSort(s, key, dir))}
-        emptyText="This user hasn't run a tool yet."
+        emptyText="This user hasn't saved a result yet."
       />
 
       <ConfirmDialog

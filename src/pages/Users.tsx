@@ -28,7 +28,9 @@ const COLUMNS: Column<AdminUser>[] = [
   { key: "name", header: "Name", sortKey: "full_name", render: (u) => u.full_name || <span className="text-muted">—</span> },
   { key: "joined", header: "Joined", sortKey: "created_at", defaultDir: "desc", render: (u) => formatDate(u.created_at) },
   { key: "seen", header: "Last sign-in", sortKey: "last_sign_in_at", defaultDir: "desc", render: (u) => formatRelative(u.last_sign_in_at) },
-  { key: "runs", header: "Runs", sortKey: "run_count", defaultDir: "desc", className: "text-right tabular-nums", render: (u) => formatNumber(u.run_count) },
+  { key: "runs", header: "Runs", sortKey: "tool_runs", defaultDir: "desc", className: "text-right tabular-nums", render: (u) => formatNumber(u.tool_runs) },
+  { key: "last_run", header: "Last run", sortKey: "last_run_at", defaultDir: "desc", render: (u) => formatRelative(u.last_run_at) },
+  { key: "saved", header: "Saved", sortKey: "run_count", defaultDir: "desc", className: "text-right tabular-nums", render: (u) => formatNumber(u.run_count) },
 ];
 
 const SORT_KEYS = COLUMNS.flatMap((c) => (c.sortKey ? [c.sortKey] : []));

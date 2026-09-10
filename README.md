@@ -47,6 +47,19 @@ Everything is checked server-side; the UI guard is cosmetic.
 Migrations live in `supabase/migrations/` and were applied to prod through the
 Supabase MCP; the files are the record.
 
+## Two kinds of usage data
+
+- **Runs** (`public.tool_runs`) — one row per AI call from either app, signed in or
+  not, written by the `openai-handler` edge function (lives in `apps/web/supabase/functions`).
+  Stores feature, platform, page path (web only), user id or a salted IP hash, status and
+  latency. No prompt or completion text. This is the real usage number.
+- **Saved results** (`public.user_activity_history`) — only what signed-in users chose to
+  save with the Save button. Includes the text. Older and much smaller.
+
+Anonymous visitors are counted by `visitor_hash` = first 24 hex chars of
+SHA-256(salt + ip). The salt is `TOOL_RUNS_SALT` if set as a function secret, otherwise
+the service-role key.
+
 ## Deploy (Cloudflare Pages)
 
 - Build command: `npm run build` · output: `dist`

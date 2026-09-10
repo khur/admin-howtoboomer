@@ -3,7 +3,7 @@
 // pages can hand it straight to an ErrorBlock or toast.
 
 import { supabase } from "./supabase";
-import type { ActivityRow, AdminUser, Page, Sort, Stats } from "./types";
+import type { ActivityRow, AdminUser, Page, Sort, Stats, ToolRun } from "./types";
 
 export const USERS_PAGE_SIZE = 50;
 export const ACTIVITY_PAGE_SIZE = 100;
@@ -57,12 +57,42 @@ export async function listUsers(
 
 export async function getUserDetail(
   userId: string,
-): Promise<{ user: AdminUser; activity: ActivityRow[] }> {
+): Promise<{ user: AdminUser; activity: ActivityRow[]; runs: ToolRun[] }> {
   const { data, error } = await supabase.rpc("admin_user_detail", { p_user_id: userId });
   if (error) fail(error, "Could not load user.");
-  const detail = data as { user: AdminUser | null; activity: ActivityRow[] };
+  const detail = data as { user: AdminUser | null; activity: ActivityRow[]; runs: ToolRun[] };
   if (!detail?.user) throw new Error("User not found.");
-  return { user: detail.user, activity: detail.activity ?? [] };
+  return { user: detail.user, activity: detail.activity ?? [], runs: detail.runs ?? [] };
+}
+
+export interface RunFilters {
+  feature?: string;
+  platform?: string;
+  since?: string;
+  status?: string;
+  /** "anon" | "signed_in" | "" */
+  who?: string;
+  page: number;
+  pageSize?: number;
+  sort?: Sort;
+}
+
+export async function listToolRuns(f: RunFilters): Promise<Page<ToolRun>> {
+  const pageSize = f.pageSize ?? ACTIVITY_PAGE_SIZE;
+  const sort = f.sort ?? DEFAULT_SORT;
+  const { data, error } = await supabase.rpc("admin_tool_runs", {
+    p_feature: f.feature || null,
+    p_platform: f.platform || null,
+    p_since: f.since || null,
+    p_status: f.status || null,
+    p_anon: f.who === "anon" ? true : f.who === "signed_in" ? false : null,
+    lim: pageSize,
+    off: (f.page - 1) * pageSize,
+    sort_by: sort.by,
+    sort_dir: sort.dir,
+  });
+  if (error) fail(error, "Could not load runs.");
+  return toPage<ToolRun & { total_count: number }>(data);
 }
 
 export interface ActivityFilters {

@@ -42,8 +42,12 @@ export function Activity() {
   return (
     <>
       <PageHeader
-        title="Activity"
-        subtitle={q.data ? `${formatNumber(q.data.total)} tool runs` : undefined}
+        title="Saved results"
+        subtitle={
+          q.data
+            ? `${formatNumber(q.data.total)} results users chose to save. For every AI call, see Runs.`
+            : "Results users chose to save. For every AI call, see Runs."
+        }
       />
 
       <div className="flex flex-wrap gap-3 mb-4">

@@ -51,6 +51,7 @@ const LABELS: Record<FeatureType, string> = {
   tone_adjuster: "Tone Adjuster",
   translator: "Translator",
   generate_response: "Response Generator",
+  neutralizer: "Neutralizer",
 };
 
 export function featureLabel(featureType: string): string {
@@ -78,4 +79,23 @@ export function preview(text: string, max = 80): string {
 
 export function formatNumber(n: number): string {
   return new Intl.NumberFormat("en-US").format(n);
+}
+
+export function statusLabel(status: string): string {
+  switch (status) {
+    case "ok":
+      return "OK";
+    case "error":
+      return "Error";
+    case "rate_limited":
+      return "Rate limited";
+    default:
+      return status;
+  }
+}
+
+/** "1.6s" / "820ms" / "—". */
+export function formatDuration(ms: number | null | undefined): string {
+  if (ms == null) return "—";
+  return ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`;
 }
