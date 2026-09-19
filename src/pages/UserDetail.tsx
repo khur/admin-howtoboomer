@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
-import { deleteUser, getUserDetail, sendPasswordReset, updateProfile } from "@/lib/api";
+import { deleteUser, getSettings, getUserDetail, sendPasswordReset, updateProfile } from "@/lib/api";
 import { formatDate, formatDateTime, formatNumber, formatRelative } from "@/lib/format";
 import { useAuth } from "@/auth/AuthProvider";
 import { useToast } from "@/components/Toast";
@@ -24,9 +24,12 @@ export function UserDetail() {
   const { session } = useAuth();
 
   const q = useQuery({ queryKey: ["user", id], queryFn: () => getUserDetail(id), enabled: !!id });
+  const settings = useQuery({ queryKey: ["settings"], queryFn: getSettings });
 
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
+  /** Text form of daily_run_limit; "" means "use the site-wide default". */
+  const [limit, setLimit] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [activitySort, setActivitySort] = useState<Sort>(DEFAULT_SORT);
   const [runsSort, setRunsSort] = useState<Sort>(DEFAULT_SORT);
@@ -35,11 +38,20 @@ export function UserDetail() {
     if (q.data) {
       setFullName(q.data.user.full_name ?? "");
       setUsername(q.data.user.username ?? "");
+      setLimit(q.data.user.daily_run_limit === null ? "" : String(q.data.user.daily_run_limit));
     }
   }, [q.data]);
 
+  const limitValue: number | null = limit.trim() === "" ? null : Number.parseInt(limit, 10);
+  const limitValid = limitValue === null || (Number.isInteger(limitValue) && limitValue >= 0);
+
   const save = useMutation({
-    mutationFn: () => updateProfile(id, { full_name: fullName.trim(), username: username.trim() }),
+    mutationFn: () =>
+      updateProfile(id, {
+        full_name: fullName.trim(),
+        username: username.trim(),
+        daily_run_limit: limitValue,
+      }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["user", id] });
       await queryClient.invalidateQueries({ queryKey: ["users"] });
@@ -72,11 +84,14 @@ export function UserDetail() {
 
   const { user, activity, runs } = q.data;
   const isSelf = session?.user.id === user.user_id;
-  const dirty = fullName.trim() !== (user.full_name ?? "") || username.trim() !== (user.username ?? "");
+  const dirty =
+    fullName.trim() !== (user.full_name ?? "") ||
+    username.trim() !== (user.username ?? "") ||
+    limitValue !== user.daily_run_limit;
 
   function onSave(e: FormEvent) {
     e.preventDefault();
-    if (dirty) save.mutate();
+    if (dirty && limitValid) save.mutate();
   }
 
   return (
@@ -89,6 +104,9 @@ export function UserDetail() {
           <span className="break-all">
             {user.email}
             {user.is_admin && <span className="badge ml-3 align-middle">admin</span>}
+            {user.daily_run_limit !== null && (
+              <span className="badge ml-3 align-middle">limit {user.daily_run_limit}/day</span>
+            )}
           </span>
         }
         subtitle={
@@ -113,9 +131,27 @@ export function UserDetail() {
               <label htmlFor="username" className="label">Username</label>
               <input id="username" className="field" value={username} onChange={(e) => setUsername(e.target.value)} />
             </div>
+            <div className="sm:col-span-2">
+              <label htmlFor="daily_run_limit" className="label">Daily run limit</label>
+              <input
+                id="daily_run_limit"
+                className="field"
+                type="number"
+                min={0}
+                step={1}
+                inputMode="numeric"
+                placeholder={settings.data ? `default (${settings.data.user_daily_limit})` : "default"}
+                value={limit}
+                onChange={(e) => setLimit(e.target.value)}
+              />
+              <p className="text-xs text-muted mt-1">
+                Blank uses the site-wide signed-in limit. 0 blocks this user from running tools.
+              </p>
+              {!limitValid && <p className="text-xs text-error mt-1">Must be a whole number, 0 or more.</p>}
+            </div>
           </div>
           <p className="text-xs text-muted font-mono break-all">id {user.user_id}</p>
-          <button type="submit" className="btn btn-primary" disabled={!dirty || save.isPending}>
+          <button type="submit" className="btn btn-primary" disabled={!dirty || !limitValid || save.isPending}>
             {save.isPending ? "Saving…" : "Save"}
           </button>
         </form>

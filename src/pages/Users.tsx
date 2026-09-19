@@ -22,6 +22,7 @@ const COLUMNS: Column<AdminUser>[] = [
       <span className="font-semibold text-ink">
         {u.email}
         {u.is_admin && <span className="badge ml-2">admin</span>}
+        {u.daily_run_limit !== null && <span className="badge ml-2">limit {u.daily_run_limit}</span>}
       </span>
     ),
   },

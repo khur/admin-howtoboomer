@@ -66,7 +66,20 @@ export interface AdminUser {
   tool_runs: number;
   last_run_at: string | null;
   is_admin: boolean;
+  /** Per-user daily AI run cap; null = the site-wide `user_daily_limit`. */
+  daily_run_limit: number | null;
 }
+
+/** Single row of `app_settings`, edited on the Limits page. */
+export interface AppSettings {
+  anon_daily_limit: number;
+  user_daily_limit: number;
+  ip_minute_limit: number;
+  global_daily_limit: number;
+  updated_at: string;
+}
+
+export type SettingsPatch = Omit<AppSettings, "updated_at">;
 
 /** One AI call, from tool_runs. */
 export interface ToolRun {

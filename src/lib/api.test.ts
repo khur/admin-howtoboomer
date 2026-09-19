@@ -1,14 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { rpc, invoke, eq, update, from, resetPasswordForEmail } = vi.hoisted(() => {
+const { rpc, invoke, eq, update, from, single, resetPasswordForEmail } = vi.hoisted(() => {
   const eq = vi.fn();
+  const single = vi.fn();
   const update = vi.fn(() => ({ eq }));
+  const select = vi.fn(() => ({ eq: vi.fn(() => ({ single })) }));
   return {
     rpc: vi.fn(),
     invoke: vi.fn(),
     eq,
     update,
-    from: vi.fn(() => ({ update })),
+    select,
+    single,
+    from: vi.fn(() => ({ update, select })),
     resetPasswordForEmail: vi.fn(),
   };
 });
@@ -32,6 +36,8 @@ import {
   updateProfile,
   sendPasswordReset,
   deleteUser,
+  getSettings,
+  saveSettings,
 } from "./api";
 
 beforeEach(() => {
@@ -166,5 +172,36 @@ describe("deleteUser", () => {
       error: { context: new Response(JSON.stringify({ error: "userId must be a uuid." }), { status: 400 }) },
     });
     await expect(deleteUser("bad")).rejects.toThrow("userId must be a uuid.");
+  });
+});
+
+describe("settings", () => {
+  const patch = { anon_daily_limit: 5, user_daily_limit: 100, ip_minute_limit: 8, global_daily_limit: 500 };
+
+  it("getSettings reads the single row", async () => {
+    single.mockResolvedValueOnce({ data: { ...patch, updated_at: "2026-09-19" }, error: null });
+    expect(await getSettings()).toEqual({ ...patch, updated_at: "2026-09-19" });
+    expect(from).toHaveBeenCalledWith("app_settings");
+    single.mockResolvedValueOnce({ data: null, error: { message: "denied" } });
+    await expect(getSettings()).rejects.toThrow("denied");
+  });
+
+  it("saveSettings updates the row and throws on error", async () => {
+    eq.mockResolvedValueOnce({ error: null });
+    await saveSettings(patch);
+    expect(from).toHaveBeenCalledWith("app_settings");
+    expect(update).toHaveBeenCalledWith(patch);
+    expect(eq).toHaveBeenCalledWith("id", true);
+    eq.mockResolvedValueOnce({ error: { message: "denied" } });
+    await expect(saveSettings(patch)).rejects.toThrow("denied");
+  });
+});
+
+describe("updateProfile daily_run_limit", () => {
+  it("passes the override through, including null to clear it", async () => {
+    eq.mockResolvedValueOnce({ error: null });
+    await updateProfile("u1", { daily_run_limit: null });
+    expect(update).toHaveBeenCalledWith({ daily_run_limit: null });
+    expect(eq).toHaveBeenCalledWith("user_id", "u1");
   });
 });

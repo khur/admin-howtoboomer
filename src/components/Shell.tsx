@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from "react-router";
-import { Activity, Bookmark, LayoutDashboard, LogOut, Users } from "lucide-react";
+import { Activity, Bookmark, LayoutDashboard, LogOut, SlidersHorizontal, Users } from "lucide-react";
 import { useAuth } from "@/auth/AuthProvider";
 
 const NAV = [
@@ -7,6 +7,7 @@ const NAV = [
   { to: "/users", label: "Users", icon: Users, end: false },
   { to: "/runs", label: "Runs", icon: Activity, end: false },
   { to: "/activity", label: "Saved results", icon: Bookmark, end: false },
+  { to: "/settings", label: "Limits", icon: SlidersHorizontal, end: false },
 ];
 
 export function Shell() {

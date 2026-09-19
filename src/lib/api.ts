@@ -3,7 +3,16 @@
 // pages can hand it straight to an ErrorBlock or toast.
 
 import { supabase } from "./supabase";
-import type { ActivityRow, AdminUser, Page, Sort, Stats, ToolRun } from "./types";
+import type {
+  ActivityRow,
+  AdminUser,
+  AppSettings,
+  Page,
+  SettingsPatch,
+  Sort,
+  Stats,
+  ToolRun,
+} from "./types";
 
 export const USERS_PAGE_SIZE = 50;
 export const ACTIVITY_PAGE_SIZE = 100;
@@ -123,7 +132,7 @@ export async function listActivity(f: ActivityFilters): Promise<Page<ActivityRow
 
 export async function updateProfile(
   userId: string,
-  patch: { full_name?: string; username?: string },
+  patch: { full_name?: string; username?: string; daily_run_limit?: number | null },
 ): Promise<void> {
   const { error } = await supabase.from("profiles").update(patch).eq("user_id", userId);
   if (error) fail(error, "Could not save profile.");
@@ -149,4 +158,17 @@ export async function deleteUser(userId: string): Promise<void> {
     fail(error as { message: string }, "Delete failed.");
   }
   if (data?.error) throw new Error(data.error);
+}
+
+// --- Limits (app_settings) ---------------------------------------------------
+
+export async function getSettings(): Promise<AppSettings> {
+  const { data, error } = await supabase.from("app_settings").select("*").eq("id", true).single();
+  if (error) fail(error, "Could not load settings.");
+  return data as AppSettings;
+}
+
+export async function saveSettings(patch: SettingsPatch): Promise<void> {
+  const { error } = await supabase.from("app_settings").update(patch).eq("id", true);
+  if (error) fail(error, "Could not save settings.");
 }
